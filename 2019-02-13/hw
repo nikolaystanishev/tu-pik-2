@@ -1,0 +1,2 @@
+Save number between 0 and 65000 in
+unsigned char x, y; // from 0 to 255
