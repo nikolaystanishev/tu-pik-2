@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct product {
     long id;
@@ -16,8 +17,9 @@ struct products {
 };
 
 int load_products(char*, struct products*);
-int add_new_product(struct products*);
+int save_products(char*, struct products*);
 void find_last(struct products*, struct products*);
+int add_new_product(struct products*);
 
 int main() {
     char filename[100];
@@ -25,6 +27,11 @@ int main() {
     scanf("%s", filename);
 
     struct products *products = NULL;
+    products = malloc(sizeof(struct products));
+    if (products == NULL) {
+        perror("malloc");
+        return -1;
+    }
     if (load_products(filename, products)) {
         return -1;
     }
@@ -32,13 +39,18 @@ int main() {
     int option = 0;
     int exit_flag = 1;
     while(exit_flag) {
-        printf("1. Add new product");
-        printf("2. Change quantity of product");
-        printf("3. Show all products");
-        printf("4. Show info for product");
-        printf("5. Exit");
+        system("@cls||clear");
 
-        scanf("%d", &option);
+        printf("1. Add new product\n");
+        printf("2. Change quantity of product\n");
+        printf("3. Show all products\n");
+        printf("4. Show info for product\n");
+        printf("5. Exit\n");
+
+        printf("Insert option: ");
+        if (scanf("%d", &option) == EOF) {
+            break;
+        }
 
         switch (option) {
             case 1:
@@ -66,6 +78,10 @@ int main() {
         getchar();
     }
 
+    if (save_products(filename, products)) {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -85,8 +101,8 @@ int load_products(char *filename, struct products *products) {
             if (feof(fp)) {
                 break;
             }
-            perror("fwrite");
             fclose(fp);
+            perror("fread");
             return -1;
         }
 
@@ -101,6 +117,38 @@ int load_products(char *filename, struct products *products) {
     return 0;
 }
 
+int save_products(char* filename, struct products *products) {
+    FILE *fp  = NULL;
+
+    if ((fp = fopen(filename, "wb")) == NULL) {
+        perror("fopen");
+        return -1;
+    }
+
+    while (1) {
+        if (fwrite(&products->val, sizeof(struct product), 1, fp) != 1) {
+            fclose(fp);
+            perror("fwrite");
+            return -1;
+        }
+
+        if (products->next == NULL) {
+            break;
+        }
+        products = products->next;
+    }
+
+    return 0;
+}
+
+void find_last(struct products *products, struct products *last_products) {
+    last_products = products;
+
+    while(last_products->next) {
+        last_products = last_products->next;
+    }
+}
+
 int add_new_product(struct products *products) {
     long id = 0;
     char name[50];
@@ -113,11 +161,11 @@ int add_new_product(struct products *products) {
     printf("Insert name: ");
     scanf("%s", name);
     printf("Insert price: ");
-    scanf("%.2f", &price);
+    scanf("%f", &price);
     printf("Insert quantity: ");
     scanf("%d", &quantity);
     printf("Insert date: ");
-    scanf("%s", &date);
+    scanf("%s", date);
 
     struct product product;
     product.id = id;
@@ -127,19 +175,21 @@ int add_new_product(struct products *products) {
     strcat(product.date, date);
 
     struct products *last_products = NULL;
+    last_products = malloc(sizeof(struct products));
+    if (last_products == NULL) {
+        perror("malloc");
+        return -1;
+    }
     find_last(products, last_products);
 
     struct products *next_products = NULL;
+    next_products = malloc(sizeof(struct products));
+    if (next_products == NULL) {
+        perror("malloc");
+        return -1;
+    }
     next_products->val = product;
     last_products->next = next_products;
 
     return 0;
-}
-
-void find_last(struct products *products, struct products *last_products) {
-    last_products = products;
-
-    while(last_products->next) {
-        last_products = last_products->next;
-    }
 }
