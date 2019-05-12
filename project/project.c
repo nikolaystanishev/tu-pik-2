@@ -18,8 +18,10 @@ struct products {
 
 int load_products(char*, struct products*);
 int save_products(char*, struct products*);
-int find_by_id(struct products*, struct products*, long);
+struct products* find_by_id(struct products*, long);
+void delete_by_id(struct products*, long);
 int add_new_product(struct products*);
+int change_quantity_of_product(struct products*);
 int print_product_with_id(struct products*);
 
 int main() {
@@ -71,7 +73,9 @@ int main() {
                 }
                 break;
             case 2:
-                /* code */
+                if (change_quantity_of_product(products)) {
+                    return -1;
+                }
                 break;
             case 3:
                 /* code */
@@ -164,7 +168,7 @@ int save_products(char* filename, struct products *products) {
     return 0;
 }
 
-int find_by_id(struct products *products, struct products *products_with_id, long id) {
+struct products* find_by_id(struct products *products, long id) {
     struct products *iterate_products = products->next;
     while(1) {
         if (iterate_products == NULL) {
@@ -172,14 +176,31 @@ int find_by_id(struct products *products, struct products *products_with_id, lon
         }
 
         if (iterate_products->val.id == id) {
-            products_with_id->val = iterate_products->val;
-            return 0;
+            return iterate_products;
         }
 
         iterate_products = iterate_products->next;
     }
 
-    return -1;
+    return NULL;
+}
+
+void delete_by_id(struct products *products, long id) {
+    struct products *prev_products = products;
+    struct products *iterate_products = products->next;
+    while(1) {
+        if (iterate_products == NULL) {
+            break;
+        }
+
+        if (iterate_products->val.id == id) {
+            prev_products->next = iterate_products->next;
+            break;
+        }
+
+        iterate_products = iterate_products->next;
+        prev_products = prev_products->next;
+    }
 }
 
 int add_new_product(struct products *products) {
@@ -231,14 +252,9 @@ int print_product_with_id(struct products* products) {
     printf("Insert id: ");
     scanf("%ld", &id);
 
-    struct products *products_with_id = NULL;
-    products_with_id = malloc(sizeof(struct products));
-    if (products_with_id == NULL) {
-        perror("malloc");
-        return -1;
-    }
+    struct products *products_with_id = find_by_id(products, id);
 
-    if (find_by_id(products, products_with_id, id) == -1) {
+    if (products_with_id == NULL) {
         printf("Missing product!\n");
     } else {
         printf("id: %ld\n", products_with_id->val.id);
@@ -246,6 +262,33 @@ int print_product_with_id(struct products* products) {
         printf("price: %.2f\n", products_with_id->val.price);
         printf("quantity: %d\n", products_with_id->val.quantity);
         printf("date: %s\n", products_with_id->val.date);
+    }
+
+    return 0;
+}
+
+int change_quantity_of_product(struct products* products) {
+    long id;
+    printf("Insert id: ");
+    scanf("%ld", &id);
+
+    int quantity;
+    printf("Insert quantity to change: ");
+    scanf("%d", &quantity);
+
+    struct products *products_with_id = find_by_id(products, id);
+
+    if (products_with_id == NULL) {
+        printf("Missing product!\n");
+    } else {
+        int new_quantity = products_with_id->val.quantity + quantity;
+        if (new_quantity < 0) {
+            printf("Quantity to change is bigger than product quantity!\n");
+        } else if (new_quantity > 0) {
+            products_with_id->val.quantity = new_quantity;
+        } else if (new_quantity == 0) {
+            delete_by_id(products, id);
+        }
     }
 
     return 0;
