@@ -308,7 +308,6 @@ int print_all_expired_products(struct products *products) {
             return -1;
         }
 
-        printf("%f", difftime(product_date_t, date_t));
         if (difftime(product_date_t, date_t) < 0) {
             printf("id: %ld\n", iterate_products->val.id);
             printf("name: %s\n", iterate_products->val.name);
