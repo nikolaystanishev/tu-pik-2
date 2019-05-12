@@ -1,6 +1,9 @@
+#define _XOPEN_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 struct product {
     long id;
@@ -20,6 +23,7 @@ int load_products(char*, struct products*);
 int save_products(char*, struct products*);
 struct products* find_by_id(struct products*, long);
 void delete_by_id(struct products*, long);
+time_t string_to_time(char*);
 int add_new_product(struct products*);
 int change_quantity_of_product(struct products*);
 int print_all_expired_products(struct products*);
@@ -196,6 +200,29 @@ void delete_by_id(struct products *products, long id) {
     }
 }
 
+time_t string_to_time(char *string_time) {
+    time_t result = 0;
+
+    int day = 0, month = 0, year = 0;
+
+    if (sscanf(string_time, "%2d.%2d.%4d", &day, &month, &year) == 3) {
+        struct tm time = {0};
+        time.tm_year = year - 1900;
+        time.tm_mon = month - 1;
+        time.tm_mday = day;
+
+        if ((result = mktime(&time)) == (time_t) - 1) {
+            perror("mktime");
+            return -1;
+        }
+    } else {
+        perror("sscanf");
+        return -1;
+    }
+
+    return result;
+}
+
 int add_new_product(struct products *products) {
     long id = 0;
     char name[50] = "";
@@ -211,7 +238,7 @@ int add_new_product(struct products *products) {
     scanf("%f", &price);
     printf("Insert quantity: ");
     scanf("%d", &quantity);
-    printf("Insert date /in yyyy-mm-dd format/: ");
+    printf("Insert date /in dd.mm.yyyy format/: ");
     scanf("%s", date);
 
     struct product product;
@@ -262,8 +289,13 @@ int print_product_with_id(struct products *products) {
 
 int print_all_expired_products(struct products *products) {
     char date[11];
-    printf("Insert date to compare: ");
+    printf("Insert date to compare /in dd.mm.yyyy format/: ");
     scanf("%s", date);
+
+    time_t date_t = string_to_time(date);
+    if (date_t == -1) {
+        return -1;
+    }
 
     struct products *iterate_products = products->next;
     while(1) {
@@ -271,7 +303,13 @@ int print_all_expired_products(struct products *products) {
             break;
         }
 
-        if (strcmp(iterate_products->val.date, date) < 0) {
+        time_t product_date_t = string_to_time(iterate_products->val.date);
+        if (product_date_t == -1) {
+            return -1;
+        }
+
+        printf("%f", difftime(product_date_t, date_t));
+        if (difftime(product_date_t, date_t) < 0) {
             printf("id: %ld\n", iterate_products->val.id);
             printf("name: %s\n", iterate_products->val.name);
             printf("price: %.2f\n", iterate_products->val.price);
