@@ -22,6 +22,7 @@ struct products* find_by_id(struct products*, long);
 void delete_by_id(struct products*, long);
 int add_new_product(struct products*);
 int change_quantity_of_product(struct products*);
+int print_all_expired_products(struct products*);
 int print_product_with_id(struct products*);
 
 int main() {
@@ -40,24 +41,14 @@ int main() {
         return -1;
     }
 
-    struct products *ip = products->next;
-    while(1) {
-        if (ip == NULL) {
-            break;
-        }
-        printf("%ld - %s\n", ip->val.id, ip->val.name);
-        ip = ip->next;
-    }
-    printf("----------------------------------\n");
-
     int option = 0;
     int exit_flag = 1;
     while(exit_flag) {
-        // system("@cls||clear");
+        system("@cls||clear");
 
         printf("1. Add new product\n");
         printf("2. Change quantity of product\n");
-        printf("3. Show all products\n");
+        printf("3. Show all expired products\n");
         printf("4. Show info for product\n");
         printf("5. Exit\n");
 
@@ -78,7 +69,9 @@ int main() {
                 }
                 break;
             case 3:
-                /* code */
+                if (print_all_expired_products(products)) {
+                    return -1;
+                }
                 break;
             case 4:
                 if (print_product_with_id(products)) {
@@ -205,10 +198,10 @@ void delete_by_id(struct products *products, long id) {
 
 int add_new_product(struct products *products) {
     long id = 0;
-    char name[50];
+    char name[50] = "";
     float price;
     int quantity;
-    char date[11];
+    char date[11] = "";
 
     printf("Insert id: ");
     scanf("%ld", &id);
@@ -223,10 +216,10 @@ int add_new_product(struct products *products) {
 
     struct product product;
     product.id = id;
-    strcat(product.name, name);
+    strcpy(product.name, name);
     product.price = price;
     product.quantity = quantity;
-    strcat(product.date, date);
+    strcpy(product.date, date);
 
     struct products *last_products = products;
     while(last_products->next) {
@@ -247,7 +240,7 @@ int add_new_product(struct products *products) {
     return 0;
 }
 
-int print_product_with_id(struct products* products) {
+int print_product_with_id(struct products *products) {
     long id;
     printf("Insert id: ");
     scanf("%ld", &id);
@@ -267,7 +260,32 @@ int print_product_with_id(struct products* products) {
     return 0;
 }
 
-int change_quantity_of_product(struct products* products) {
+int print_all_expired_products(struct products *products) {
+    char date[11];
+    printf("Insert date to compare: ");
+    scanf("%s", date);
+
+    struct products *iterate_products = products->next;
+    while(1) {
+        if (iterate_products == NULL) {
+            break;
+        }
+
+        if (strcmp(iterate_products->val.date, date) < 0) {
+            printf("id: %ld\n", iterate_products->val.id);
+            printf("name: %s\n", iterate_products->val.name);
+            printf("price: %.2f\n", iterate_products->val.price);
+            printf("quantity: %d\n", iterate_products->val.quantity);
+            printf("date: %s\n", iterate_products->val.date);
+        }
+
+        iterate_products = iterate_products->next;
+    }
+
+    return 0;
+}
+
+int change_quantity_of_product(struct products *products) {
     long id;
     printf("Insert id: ");
     scanf("%ld", &id);
