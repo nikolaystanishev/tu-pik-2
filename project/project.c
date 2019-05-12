@@ -46,10 +46,10 @@ int main() {
     while(exit_flag) {
         system("@cls||clear");
 
-        printf("1. Add new product\n");
-        printf("2. Change quantity of product\n");
-        printf("3. Show all expired products\n");
-        printf("4. Show info for product\n");
+        printf("1. Add new product.\n");
+        printf("2. Change quantity of product.\n");
+        printf("3. Show all expired products.\n");
+        printf("4. Show info for product.\n");
         printf("5. Exit\n");
 
         printf("Insert option: ");
@@ -211,7 +211,7 @@ int add_new_product(struct products *products) {
     scanf("%f", &price);
     printf("Insert quantity: ");
     scanf("%d", &quantity);
-    printf("Insert date: ");
+    printf("Insert date /in yyyy-mm-dd format/: ");
     scanf("%s", date);
 
     struct product product;
